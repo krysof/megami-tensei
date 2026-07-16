@@ -62,7 +62,7 @@
   let framebuffer = 0;
 
   const fetchDisk = async (file) => {
-    const response = await fetch(`./data/${file}?v=playable2`);
+    const response = await fetch(`./data/${file}?v=playable3`);
     if (!response.ok) throw new Error(`${file}: ${response.status}`);
     return new Uint8Array(await response.arrayBuffer());
   };
@@ -137,7 +137,7 @@
   const boot = async () => {
     try {
       const loaded = await Promise.all([
-        MegamiTenseiModule({ locateFile: file => `./${file}?v=playable2` }),
+        MegamiTenseiModule({ locateFile: file => `./${file}?v=playable3` }),
         fetchDisk("disk1.bin"),
         fetchDisk("disk2.bin")
       ]);
