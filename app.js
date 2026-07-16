@@ -62,7 +62,7 @@
   let framebuffer = 0;
 
   const fetchDisk = async (file) => {
-    const response = await fetch(`./data/${file}?v=playable1`);
+    const response = await fetch(`./data/${file}?v=playable2`);
     if (!response.ok) throw new Error(`${file}: ${response.status}`);
     return new Uint8Array(await response.arrayBuffer());
   };
@@ -109,7 +109,14 @@
       set(true);
     });
     for (const name of ["pointerup", "pointercancel", "lostpointercapture"])
-      button.addEventListener(name, () => set(false));
+      button.addEventListener(name, () => setTimeout(() => set(false), 120));
+  });
+
+  canvas.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    if (!module) return;
+    module._mt_set_button(0, 3, 1);
+    setTimeout(() => module && module._mt_set_button(0, 3, 0), 240);
   });
 
   const draw = () => {
@@ -120,7 +127,7 @@
     const lit = module._mt_nonblack_pixels();
     document.body.dataset.frames = String(frames);
     document.body.dataset.nonblack = String(lit);
-    if (frames > 0) {
+    if (lit > 0) {
       document.body.dataset.ready = "true";
       status.hidden = true;
     }
@@ -130,7 +137,7 @@
   const boot = async () => {
     try {
       const loaded = await Promise.all([
-        MegamiTenseiModule({ locateFile: file => `./${file}?v=playable1` }),
+        MegamiTenseiModule({ locateFile: file => `./${file}?v=playable2` }),
         fetchDisk("disk1.bin"),
         fetchDisk("disk2.bin")
       ]);
@@ -145,6 +152,7 @@
         module._free(disk1Pointer);
         module._free(disk2Pointer);
       }
+      module._mt_emulator_fast_forward(780);
       framebuffer = module._mt_framebuffer();
       frameImage = context.createImageData(640, 400);
       requestAnimationFrame(draw);
