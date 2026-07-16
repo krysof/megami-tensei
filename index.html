@@ -1,40 +1,34 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#090b10">
-  <title>Megami Tensei PC-88 · WASM</title>
-  <link rel="stylesheet" href="./styles.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <title>megami-tensei</title>
+  <link rel="stylesheet" href="./styles.css?v=playable1">
 </head>
 <body>
-  <main class="shell">
-    <header class="hero">
-      <p class="eyebrow">PC-8801 · WEBASSEMBLY RESEARCH BUILD</p>
-      <h1>Digital Devil Story<br><span>Megami Tensei</span></h1>
-      <p class="lede">原生 C++/WASM 移植工程的磁盘加载验证版本。</p>
-    </header>
-
-    <section class="terminal" aria-live="polite">
-      <div class="terminal-bar">
-        <span></span><span></span><span></span>
-        <strong>BOOT MONITOR</strong>
-      </div>
-      <div class="boot-line"><i id="pulse"></i><span id="status">正在初始化 WASM 引擎…</span></div>
-      <div class="progress"><b id="progress"></b></div>
-    </section>
-
-    <section class="grid" id="disk-grid" aria-label="磁盘状态"></section>
-
-    <section class="notice">
-      <strong>开发状态</strong>
-      <p>当前版本验证浏览器端 C++ 引擎和双盘数据装载；游戏规则、画面和音频仍在逆向重写中。</p>
-    </section>
-
-    <footer>WASM CORE · CHRN-PRESERVING DISK PACKAGE · NO NATIVE SOURCE IN RELEASE</footer>
+  <main>
+    <canvas id="screen" width="640" height="400" aria-label="megami-tensei"></canvas>
+    <div id="status">LOADING</div>
   </main>
-  <script src="./megaten.js"></script>
-  <script src="./app.js"></script>
+
+  <nav id="controls" aria-label="controls">
+    <section class="dpad">
+      <button data-button="4">▲</button>
+      <button data-button="6">◀</button>
+      <button data-button="7">▶</button>
+      <button data-button="5">▼</button>
+    </section>
+    <section class="actions">
+      <button data-button="2">I</button>
+      <button data-button="0">Z</button>
+      <button data-button="8">X</button>
+      <button data-button="3">↵</button>
+    </section>
+  </nav>
+
+  <script src="./megaten.js?v=playable1"></script>
+  <script src="./app.js?v=playable1"></script>
 </body>
 </html>
-
