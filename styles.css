@@ -68,11 +68,7 @@ canvas {
 .dpad button:nth-child(2) { grid-area: 2 / 1; }
 .dpad button:nth-child(3) { grid-area: 2 / 3; }
 .dpad button:nth-child(4) { grid-area: 3 / 2; }
-.actions { grid-template: repeat(2, 42px) / repeat(3, 42px); }
-.actions button:nth-child(1) { grid-area: 2 / 1; }
-.actions button:nth-child(2) { grid-area: 2 / 2; }
-.actions button:nth-child(3) { grid-area: 1 / 3; }
-.actions button:nth-child(4) { grid-area: 2 / 3; }
+.actions { grid-template: repeat(2, 42px) / repeat(2, 42px); }
 
 @media (orientation: portrait) and (pointer: coarse) {
   canvas {
@@ -88,7 +84,7 @@ canvas {
 @media (max-height: 520px) {
   :root { --controls-height: 86px; }
   #controls button { width: 34px; height: 34px; }
-  .actions { grid-template: repeat(2, 34px) / repeat(3, 34px); }
+  .actions { grid-template: repeat(2, 34px) / repeat(2, 34px); }
   .dpad { grid-template: repeat(3, 23px) / repeat(3, 23px); }
   .dpad button { width: 23px !important; height: 23px !important; }
 }

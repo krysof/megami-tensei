@@ -62,7 +62,7 @@
   let framebuffer = 0;
 
   const fetchDisk = async (file) => {
-    const response = await fetch(`./data/${file}?v=playable3`);
+    const response = await fetch(`./data/${file}?v=playable4`);
     if (!response.ok) throw new Error(`${file}: ${response.status}`);
     return new Uint8Array(await response.arrayBuffer());
   };
@@ -98,9 +98,21 @@
   });
 
   document.querySelectorAll("[data-button]").forEach(button => {
-    const id = Number(button.dataset.button);
+    let activeId = null;
+    const currentId = () => Number(
+      button.dataset.portraitButton !== undefined &&
+      matchMedia("(orientation: portrait) and (pointer: coarse)").matches
+        ? button.dataset.portraitButton
+        : button.dataset.button
+    );
     const set = pressed => {
-      if (module) module._mt_set_button(0, id, pressed ? 1 : 0);
+      if (pressed) {
+        activeId = currentId();
+        if (module) module._mt_set_button(0, activeId, 1);
+      } else if (activeId !== null) {
+        if (module) module._mt_set_button(0, activeId, 0);
+        activeId = null;
+      }
       button.classList.toggle("pressed", pressed);
     };
     button.addEventListener("pointerdown", event => {
@@ -137,7 +149,7 @@
   const boot = async () => {
     try {
       const loaded = await Promise.all([
-        MegamiTenseiModule({ locateFile: file => `./${file}?v=playable3` }),
+        MegamiTenseiModule({ locateFile: file => `./${file}?v=playable4` }),
         fetchDisk("disk1.bin"),
         fetchDisk("disk2.bin")
       ]);
