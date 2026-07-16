@@ -1,0 +1,23 @@
+{
+  "format": "mtd88bin-web-manifest-v1",
+  "disks": [
+    {
+      "id": "disk1",
+      "file": "disk1.bin",
+      "bytes": 414336,
+      "payloadBytes": 407552,
+      "sectors": 422,
+      "sourceSha256": "614f1acd66760826302b78540a6b32ef0a788c85f62e528a11c6612e39e1ca6f",
+      "sha256": "94b7f07f3dd086e5a4610bd89f3f9806bd15f1029119da59b6adf26104140fa0"
+    },
+    {
+      "id": "disk2",
+      "file": "disk2.bin",
+      "bytes": 414336,
+      "payloadBytes": 407552,
+      "sectors": 422,
+      "sourceSha256": "8604901e58418609241a8c4bf671a219503610cef15085ddc5097304cfe1cbbf",
+      "sha256": "e6084d6a6adda2b494204e640c81279bd539a86f6c807cac43db927a87dfbabb"
+    }
+  ]
+}

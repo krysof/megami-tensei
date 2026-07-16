@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090b10">
+  <title>Megami Tensei PC-88 · WASM</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">PC-8801 · WEBASSEMBLY RESEARCH BUILD</p>
+      <h1>Digital Devil Story<br><span>Megami Tensei</span></h1>
+      <p class="lede">原生 C++/WASM 移植工程的磁盘加载验证版本。</p>
+    </header>
+
+    <section class="terminal" aria-live="polite">
+      <div class="terminal-bar">
+        <span></span><span></span><span></span>
+        <strong>BOOT MONITOR</strong>
+      </div>
+      <div class="boot-line"><i id="pulse"></i><span id="status">正在初始化 WASM 引擎…</span></div>
+      <div class="progress"><b id="progress"></b></div>
+    </section>
+
+    <section class="grid" id="disk-grid" aria-label="磁盘状态"></section>
+
+    <section class="notice">
+      <strong>开发状态</strong>
+      <p>当前版本验证浏览器端 C++ 引擎和双盘数据装载；游戏规则、画面和音频仍在逆向重写中。</p>
+    </section>
+
+    <footer>WASM CORE · CHRN-PRESERVING DISK PACKAGE · NO NATIVE SOURCE IN RELEASE</footer>
+  </main>
+  <script src="./megaten.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
+
