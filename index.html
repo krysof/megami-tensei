@@ -3,29 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#020207">
   <title>megami-tensei</title>
-  <link rel="stylesheet" href="styles.css?v=touch-guard-1">
+  <link rel="stylesheet" href="styles.css?v=hd-remaster-1">
 </head>
 <body>
-  <main>
-    <canvas id="screen" width="640" height="400" aria-label="megami-tensei"></canvas>
+  <main id="stage" aria-label="megami-tensei 1080p">
+    <canvas id="screen" width="1920" height="1080" aria-label="megami-tensei"></canvas>
     <div id="status">LOADING</div>
+    <nav id="controls" aria-label="controls">
+      <section class="joystick" aria-label="direction">
+        <div class="joystick-base" data-joystick>
+          <div class="joystick-ring"></div>
+          <div class="joystick-knob"></div>
+        </div>
+      </section>
+      <section class="actions" aria-label="actions">
+        <button data-button="2" aria-label="I">I</button>
+        <button data-button="8" aria-label="X">X</button>
+        <button data-button="0" aria-label="Z">Z</button>
+        <button data-button="3" aria-label="Enter">↵</button>
+      </section>
+    </nav>
   </main>
-  <nav id="controls" aria-label="controls">
-    <section class="joystick" aria-label="direction">
-      <div class="joystick-base" data-joystick>
-        <div class="joystick-knob"></div>
-      </div>
-    </section>
-    <section class="actions">
-      <button data-button="2">I</button>
-      <button data-button="8">X</button>
-      <button data-button="0">Z</button>
-      <button data-button="3">↵</button>
-    </section>
-  </nav>
-  <script src="megaten-native.js?v=semantic-names-1"></script>
-  <script src="app.js?v=semantic-names-1"></script>
+  <script src="megaten-native.js?v=hd-remaster-1"></script>
+  <script src="app.js?v=hd-remaster-1"></script>
 </body>
 </html>
