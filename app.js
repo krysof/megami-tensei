@@ -1,6 +1,7 @@
 (() => {
   "use strict";
   const canvas = document.getElementById("screen");
+  const controls = document.getElementById("controls");
   const context = canvas.getContext("2d", {alpha: false});
   const status = document.getElementById("status");
   const assetVersion = "native-bin-layout-1";
@@ -15,6 +16,14 @@
     ArrowUp: 4, ArrowDown: 5, ArrowLeft: 6, ArrowRight: 7,
     KeyZ: 0, KeyX: 8, Space: 1, Enter: 3, NumpadEnter: 3, KeyI: 2
   });
+
+  const blockBrowserGesture = event => event.preventDefault();
+  for (const name of ["contextmenu", "selectstart", "dragstart", "dblclick"])
+    controls.addEventListener(name, blockBrowserGesture);
+  for (const name of ["touchstart", "touchmove", "touchend", "touchcancel"])
+    controls.addEventListener(name, blockBrowserGesture, {passive: false});
+  for (const name of ["gesturestart", "gesturechange", "gestureend"])
+    document.addEventListener(name, blockBrowserGesture, {passive: false});
 
   const setKeyboard = (event, pressed) => {
     const button = joypad[event.code];
