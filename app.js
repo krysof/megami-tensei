@@ -1,100 +1,31 @@
 (() => {
   "use strict";
-
   const canvas = document.getElementById("screen");
-  const context = canvas.getContext("2d", { alpha: false });
+  const context = canvas.getContext("2d", {alpha: false});
   const status = document.getElementById("status");
+  let module = null;
+  let audioContext = null;
+  let audioNode = null;
+  let audioPointer = 0;
+  let saveRevision = 0;
+  const saveKey = "megami-tensei.native-save.v1";
   context.imageSmoothingEnabled = false;
-
   const joypad = Object.freeze({
-    ArrowUp: 4,
-    ArrowDown: 5,
-    ArrowLeft: 6,
-    ArrowRight: 7,
-    KeyZ: 0,
-    KeyX: 8,
-    ShiftLeft: 9,
-    ShiftRight: 9,
-    Space: 1,
-    Enter: 3,
-    NumpadEnter: 3,
-    KeyI: 2,
-    KeyQ: 10,
-    KeyW: 11
+    ArrowUp: 4, ArrowDown: 5, ArrowLeft: 6, ArrowRight: 7,
+    KeyZ: 0, KeyX: 8, Space: 1, Enter: 3, NumpadEnter: 3, KeyI: 2
   });
-
-  const retroKeys = Object.freeze({
-    Backspace: 8,
-    Tab: 9,
-    Enter: 13,
-    NumpadEnter: 271,
-    Escape: 27,
-    Space: 32,
-    ArrowUp: 273,
-    ArrowDown: 274,
-    ArrowRight: 275,
-    ArrowLeft: 276,
-    Insert: 277,
-    Home: 278,
-    End: 279,
-    PageUp: 280,
-    PageDown: 281,
-    F1: 282,
-    F2: 283,
-    F3: 284,
-    F4: 285,
-    F5: 286,
-    F6: 287,
-    F7: 288,
-    F8: 289,
-    F9: 290,
-    F10: 291,
-    ShiftRight: 303,
-    ShiftLeft: 304,
-    ControlRight: 305,
-    ControlLeft: 306,
-    AltRight: 307,
-    AltLeft: 308
-  });
-
-  let module;
-  let frameImage;
-  let framebuffer = 0;
-
-  const fetchDisk = async (file) => {
-    const response = await fetch(`./data/${file}?v=playable4`);
-    if (!response.ok) throw new Error(`${file}: ${response.status}`);
-    return new Uint8Array(await response.arrayBuffer());
-  };
-
-  const wasmBuffer = (bytes) => {
-    const pointer = module._malloc(bytes.byteLength);
-    module.HEAPU8.set(bytes, pointer);
-    return pointer;
-  };
-
-  const keyId = (event) => {
-    if (retroKeys[event.code] !== undefined) return retroKeys[event.code];
-    if (/^Key[A-Z]$/.test(event.code)) return event.code.charCodeAt(3) + 32;
-    if (/^Digit[0-9]$/.test(event.code)) return event.code.charCodeAt(5);
-    return undefined;
-  };
 
   const setKeyboard = (event, pressed) => {
-    if (!module) return;
     const button = joypad[event.code];
-    if (button !== undefined) module._mt_set_button(0, button, pressed ? 1 : 0);
-    const key = keyId(event);
-    if (key !== undefined) module._mt_set_key(key, pressed ? 1 : 0);
-    if (button !== undefined || key !== undefined) event.preventDefault();
+    if (button === undefined) return;
+    if (module) module._mt_native_set_button(button, pressed ? 1 : 0);
+    event.preventDefault();
   };
-
-  window.addEventListener("keydown", event => setKeyboard(event, true), { passive: false });
-  window.addEventListener("keyup", event => setKeyboard(event, false), { passive: false });
+  window.addEventListener("keydown", event => setKeyboard(event, true), {passive: false});
+  window.addEventListener("keyup", event => setKeyboard(event, false), {passive: false});
   window.addEventListener("blur", () => {
     if (!module) return;
-    for (let button = 0; button < 16; ++button) module._mt_set_button(0, button, 0);
-    for (let key = 0; key < 512; ++key) module._mt_set_key(key, 0);
+    for (let button = 0; button < 16; ++button) module._mt_native_set_button(button, 0);
   });
 
   document.querySelectorAll("[data-button]").forEach(button => {
@@ -103,17 +34,15 @@
     const set = pressed => {
       if (pressed) {
         activeId = currentId();
-        if (module) module._mt_set_button(0, activeId, 1);
+        if (module) module._mt_native_set_button(activeId, 1);
       } else if (activeId !== null) {
-        if (module) module._mt_set_button(0, activeId, 0);
+        if (module) module._mt_native_set_button(activeId, 0);
         activeId = null;
       }
       button.classList.toggle("pressed", pressed);
     };
     button.addEventListener("pointerdown", event => {
-      event.preventDefault();
-      button.setPointerCapture(event.pointerId);
-      set(true);
+      event.preventDefault(); button.setPointerCapture(event.pointerId); set(true);
     });
     for (const name of ["pointerup", "pointercancel", "lostpointercapture"])
       button.addEventListener(name, () => set(false));
@@ -122,54 +51,147 @@
   canvas.addEventListener("pointerdown", event => {
     event.preventDefault();
     if (!module) return;
-    module._mt_set_button(0, 3, 1);
-    setTimeout(() => module && module._mt_set_button(0, 3, 0), 240);
+    module._mt_native_set_button(0, 1);
+    setTimeout(() => module && module._mt_native_set_button(0, 0), 160);
   });
 
-  const draw = () => {
-    module._mt_emulator_frame();
-    frameImage.data.set(module.HEAPU8.subarray(framebuffer, framebuffer + 640 * 400 * 4));
-    context.putImageData(frameImage, 0, 0);
-    const frames = module._mt_frame_count();
-    const lit = module._mt_nonblack_pixels();
-    document.body.dataset.frames = String(frames);
-    document.body.dataset.nonblack = String(lit);
-    if (lit > 0) {
-      document.body.dataset.ready = "true";
-      status.hidden = true;
-    }
-    requestAnimationFrame(draw);
+  const startAudio = async () => {
+    if (!module || audioContext) return;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    audioContext = new AudioContext({latencyHint: "interactive"});
+    const frames = 1024;
+    audioPointer = module._malloc(frames * 4);
+    audioNode = audioContext.createScriptProcessor(frames, 0, 2);
+    audioNode.onaudioprocess = event => {
+      if (!module._mt_native_render_audio(audioPointer, frames, audioContext.sampleRate)) return;
+      const pcm = new Int16Array(module.HEAPU8.buffer, audioPointer, frames * 2);
+      const left = event.outputBuffer.getChannelData(0);
+      const right = event.outputBuffer.getChannelData(1);
+      for (let frame = 0; frame < frames; ++frame) {
+        left[frame] = pcm[frame * 2] / 32768;
+        right[frame] = pcm[frame * 2 + 1] / 32768;
+      }
+    };
+    audioNode.connect(audioContext.destination);
+    await audioContext.resume();
+    document.body.dataset.audio = audioContext.state;
   };
+
+  const encodeSave = bytes => {
+    let binary = "";
+    for (let offset = 0; offset < bytes.length; offset += 0x8000)
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+    return btoa(binary);
+  };
+
+  const decodeSave = text => {
+    const binary = atob(text);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; ++index) bytes[index] = binary.charCodeAt(index);
+    return bytes;
+  };
+
+  const restoreSave = () => {
+    const encoded = localStorage.getItem(saveKey);
+    if (!encoded) return false;
+    const bytes = decodeSave(encoded);
+    const pointer = module._malloc(bytes.length);
+    try {
+      module.HEAPU8.set(bytes, pointer);
+      return module._mt_native_restore_save(pointer, bytes.length) !== 0;
+    } finally {
+      module._free(pointer);
+    }
+  };
+
+  const persistSave = () => {
+    const revision = module._mt_native_save_revision();
+    if (revision === saveRevision) return;
+    const size = module._mt_native_save_size();
+    const pointer = module._mt_native_save_data();
+    if (size && pointer) {
+      const bytes = module.HEAPU8.slice(pointer, pointer + size);
+      localStorage.setItem(saveKey, encodeSave(bytes));
+    }
+    saveRevision = revision;
+    document.body.dataset.saveRevision = String(revision);
+  };
+
+  window.addEventListener("pointerdown", startAudio, {once: true, passive: true});
+  window.addEventListener("keydown", startAudio, {once: true});
+  window.addEventListener("pagehide", () => {
+    if (audioNode) audioNode.disconnect();
+    if (module && audioPointer) module._free(audioPointer);
+    audioPointer = 0;
+  });
 
   const boot = async () => {
     try {
-      const loaded = await Promise.all([
-        MegamiTenseiModule({ locateFile: file => `./${file}?v=playable4` }),
-        fetchDisk("disk1.bin"),
-        fetchDisk("disk2.bin")
+      const [runtime, response] = await Promise.all([
+        MegamiTenseiNative({locateFile: file => file}),
+        fetch("megaten-assets.bin")
       ]);
-      module = loaded[0];
-      const disk1Pointer = wasmBuffer(loaded[1]);
-      const disk2Pointer = wasmBuffer(loaded[2]);
+      module = runtime;
+      if (!response.ok) throw new Error(`ASSETS ${response.status}`);
+      const assets = new Uint8Array(await response.arrayBuffer());
+      const pointer = module._malloc(assets.length);
+      module.HEAPU8.set(assets, pointer);
+      const initialized = module._mt_native_init(pointer, assets.length);
+      module._free(pointer);
+      if (!initialized) throw new Error(module.UTF8ToString(module._mt_native_last_error()));
       try {
-        if (!module._mt_emulator_init(disk1Pointer, loaded[1].byteLength,
-                                      disk2Pointer, loaded[2].byteLength))
-          throw new Error("INIT");
-      } finally {
-        module._free(disk1Pointer);
-        module._free(disk2Pointer);
+        document.body.dataset.saveRestored = restoreSave() ? "true" : "false";
+      } catch (_) {
+        document.body.dataset.saveRestored = "false";
       }
-      module._mt_emulator_fast_forward(780);
-      framebuffer = module._mt_framebuffer();
-      frameImage = context.createImageData(640, 400);
-      requestAnimationFrame(draw);
+
+      const width = module._mt_native_width();
+      const height = module._mt_native_height();
+      const framebuffer = module._mt_native_framebuffer();
+      const image = context.createImageData(width, height);
+      const draw = () => {
+        module._mt_native_frame();
+        image.data.set(module.HEAPU8.subarray(framebuffer, framebuffer + width * height * 4));
+        context.putImageData(image, 0, 0);
+        document.body.dataset.frames = String(module._mt_native_frame_count());
+        document.body.dataset.scene = String(module._mt_native_scene());
+        document.body.dataset.selection = String(module._mt_native_selection());
+        document.body.dataset.stage = String(module._mt_native_stage());
+        document.body.dataset.map = String(module._mt_native_map());
+        document.body.dataset.playerX = String(module._mt_native_player_x());
+        document.body.dataset.playerY = String(module._mt_native_player_y());
+        document.body.dataset.currentHp = String(module._mt_native_current_hp());
+        document.body.dataset.lastContactType = String(module._mt_native_last_contact_type());
+        document.body.dataset.activeActions = String(module._mt_native_active_actions());
+        document.body.dataset.lastActionDamage = String(module._mt_native_last_action_damage());
+        document.body.dataset.level = String(module._mt_native_level());
+        document.body.dataset.experience = String(module._mt_native_experience());
+        document.body.dataset.defeatedEntities = String(module._mt_native_defeated_entities());
+        document.body.dataset.weapon = String(module._mt_native_weapon());
+        document.body.dataset.actionMode = String(module._mt_native_action_mode());
+        document.body.dataset.selectorOpen = String(module._mt_native_selector_open());
+        document.body.dataset.selectorRow = String(module._mt_native_selector_row());
+        document.body.dataset.selectorSelection = String(module._mt_native_selector_selection());
+        document.body.dataset.shopOpen = String(module._mt_native_shop_open());
+        document.body.dataset.shopSelection = String(module._mt_native_shop_selection());
+        document.body.dataset.money = String(module._mt_native_money());
+        document.body.dataset.spawn31Active = String(module._mt_native_selector_spawn_active(31));
+        document.body.dataset.spawn31Count = String(module._mt_native_selector_spawn_count(31));
+        document.body.dataset.spawnProperty = String(module._mt_native_property_at(8, 10));
+        document.body.dataset.spawnPropertyNext = String(module._mt_native_property_at(10, 10));
+        document.body.dataset.timedMonitorFrames = String(module._mt_native_timed_monitor_frames());
+        document.body.dataset.monitorDetailActive = String(module._mt_native_monitor_detail_active());
+        try { persistSave(); } catch (_) {}
+        requestAnimationFrame(draw);
+      };
+      status.hidden = true;
+      document.body.dataset.ready = "true";
+      draw();
     } catch (error) {
-      document.body.dataset.ready = "false";
       status.textContent = "ERROR";
-      status.classList.add("error");
-      console.error(error);
+      document.body.dataset.error = String(error);
     }
   };
-
   boot();
 })();
