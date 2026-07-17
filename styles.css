@@ -28,13 +28,21 @@ canvas {
 }
 #controls button:hover { border-color: #777; color: #fff; }
 #controls button.pressed { background: #ddd; color: #000; }
-.dpad { grid-template: repeat(3, 29px) / repeat(3, 29px); }
-.dpad button { width: 29px !important; height: 29px !important; border-radius: 4px !important; font-size: 11px !important; }
-.dpad button:nth-child(1) { grid-area: 1 / 2; }
-.dpad button:nth-child(2) { grid-area: 2 / 1; }
-.dpad button:nth-child(3) { grid-area: 2 / 3; }
-.dpad button:nth-child(4) { grid-area: 3 / 2; }
-.actions { grid-template: repeat(2, 42px) / repeat(2, 42px); }
+.joystick { display: block !important; }
+.joystick-base {
+  position: relative; width: 92px; height: 92px; border: 2px solid #3d3d3d;
+  border-radius: 50%; background: rgb(12 12 12 / 82%); touch-action: none;
+  box-shadow: inset 0 0 0 10px rgb(255 255 255 / 2%);
+}
+.joystick-knob {
+  --joy-x: 0px; --joy-y: 0px; position: absolute; left: 50%; top: 50%;
+  width: 40px; height: 40px; border: 1px solid #777; border-radius: 50%;
+  background: #292929; box-shadow: 0 2px 8px #000;
+  transform: translate(calc(-50% + var(--joy-x)), calc(-50% + var(--joy-y)));
+  pointer-events: none;
+}
+.actions { grid-template: repeat(2, 52px) / repeat(2, 52px); gap: 7px !important; }
+.actions button { width: 52px !important; height: 52px !important; font-size: 17px !important; }
 @media (orientation: portrait) and (pointer: coarse) {
   main { height: 100%; }
   canvas {
@@ -51,11 +59,15 @@ canvas {
     pointer-events: none; z-index: 2;
   }
   #controls section { transform: rotate(90deg); pointer-events: auto; }
+  .joystick-base { width: 116px; height: 116px; }
+  .joystick-knob { width: 48px; height: 48px; }
+  .actions { grid-template: repeat(2, 60px) / repeat(2, 60px); }
+  .actions button { width: 60px !important; height: 60px !important; font-size: 19px !important; }
 }
 @media (max-height: 520px) {
   :root { --controls-height: 86px; }
-  #controls button { width: 34px; height: 34px; }
-  .actions { grid-template: repeat(2, 34px) / repeat(2, 34px); }
-  .dpad { grid-template: repeat(3, 23px) / repeat(3, 23px); }
-  .dpad button { width: 23px !important; height: 23px !important; }
+  .joystick-base { width: 74px; height: 74px; }
+  .joystick-knob { width: 32px; height: 32px; }
+  .actions { grid-template: repeat(2, 36px) / repeat(2, 36px); gap: 4px !important; }
+  .actions button { width: 36px !important; height: 36px !important; font-size: 13px !important; }
 }

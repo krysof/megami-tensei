@@ -24,9 +24,60 @@
   };
   window.addEventListener("keydown", event => setKeyboard(event, true), {passive: false});
   window.addEventListener("keyup", event => setKeyboard(event, false), {passive: false});
+  const joystick = document.querySelector("[data-joystick]");
+  const joystickKnob = joystick.querySelector(".joystick-knob");
+  let joystickPointer = null;
+  let joystickButton = null;
+  const setJoystickButton = next => {
+    if (next === joystickButton) return;
+    if (module && joystickButton !== null) module._mt_native_set_button(joystickButton, 0);
+    joystickButton = next;
+    if (module && joystickButton !== null) module._mt_native_set_button(joystickButton, 1);
+  };
+  const updateJoystick = event => {
+    const rect = joystick.getBoundingClientRect();
+    const dx = event.clientX - (rect.left + rect.width / 2);
+    const dy = event.clientY - (rect.top + rect.height / 2);
+    const distance = Math.hypot(dx, dy);
+    const travel = rect.width * .29;
+    const scale = distance > travel ? travel / distance : 1;
+    joystickKnob.style.setProperty("--joy-x", `${dx * scale}px`);
+    joystickKnob.style.setProperty("--joy-y", `${dy * scale}px`);
+    if (distance < rect.width * .12) {
+      setJoystickButton(null);
+      return;
+    }
+    const rotated = matchMedia("(orientation: portrait) and (pointer: coarse)").matches;
+    const virtualX = rotated ? dy : dx;
+    const virtualY = rotated ? -dx : dy;
+    if (Math.abs(virtualX) >= Math.abs(virtualY))
+      setJoystickButton(virtualX < 0 ? 6 : 7);
+    else
+      setJoystickButton(virtualY < 0 ? 4 : 5);
+  };
+  const releaseJoystick = () => {
+    setJoystickButton(null);
+    joystickPointer = null;
+    joystickKnob.style.setProperty("--joy-x", "0px");
+    joystickKnob.style.setProperty("--joy-y", "0px");
+  };
+  joystick.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    joystickPointer = event.pointerId;
+    joystick.setPointerCapture(event.pointerId);
+    updateJoystick(event);
+  });
+  joystick.addEventListener("pointermove", event => {
+    if (event.pointerId === joystickPointer) updateJoystick(event);
+  });
+  for (const name of ["pointerup", "pointercancel", "lostpointercapture"])
+    joystick.addEventListener(name, event => {
+      if (event.pointerId === joystickPointer) releaseJoystick();
+    });
   window.addEventListener("blur", () => {
-    if (!module) return;
-    for (let button = 0; button < 16; ++button) module._mt_native_set_button(button, 0);
+    if (module)
+      for (let button = 0; button < 16; ++button) module._mt_native_set_button(button, 0);
+    releaseJoystick();
   });
 
   document.querySelectorAll("[data-button]").forEach(button => {
@@ -57,7 +108,15 @@
   });
 
   const startAudio = async () => {
-    if (!module || audioContext) return;
+    if (!module) {
+      document.body.dataset.audio = "waiting";
+      return;
+    }
+    if (audioContext) {
+      if (audioContext.state !== "running") await audioContext.resume();
+      document.body.dataset.audio = audioContext.state;
+      return;
+    }
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     audioContext = new AudioContext({latencyHint: "interactive"});
@@ -119,8 +178,12 @@
     document.body.dataset.saveRevision = String(revision);
   };
 
-  window.addEventListener("pointerdown", startAudio, {once: true, passive: true});
-  window.addEventListener("keydown", startAudio, {once: true});
+  const requestAudio = () => { startAudio().catch(() => {
+    document.body.dataset.audio = "error";
+  }); };
+  window.addEventListener("pointerdown", requestAudio, {passive: true});
+  window.addEventListener("touchstart", requestAudio, {passive: true});
+  window.addEventListener("keydown", requestAudio);
   window.addEventListener("pagehide", () => {
     if (audioNode) audioNode.disconnect();
     if (module && audioPointer) module._free(audioPointer);
