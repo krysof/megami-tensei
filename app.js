@@ -4,6 +4,7 @@
   const controls = document.getElementById("controls");
   const context = canvas.getContext("2d", {alpha: false});
   const status = document.getElementById("status");
+  const runtimeVersion = "attack-direction-1";
   const assetVersion = "native-bin-layout-1";
   let module = null;
   let audioContext = null;
@@ -202,7 +203,7 @@
   const boot = async () => {
     try {
       const [runtime, response] = await Promise.all([
-        MegamiTenseiNative({locateFile: file => `${file}?v=${assetVersion}`}),
+        MegamiTenseiNative({locateFile: file => `${file}?v=${runtimeVersion}`}),
         fetch(`megaten-assets.bin?v=${assetVersion}`)
       ]);
       module = runtime;
