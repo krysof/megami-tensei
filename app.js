@@ -3,6 +3,7 @@
   const canvas = document.getElementById("screen");
   const context = canvas.getContext("2d", {alpha: false});
   const status = document.getElementById("status");
+  const assetVersion = "native-bin-layout-1";
   let module = null;
   let audioContext = null;
   let audioNode = null;
@@ -129,8 +130,8 @@
   const boot = async () => {
     try {
       const [runtime, response] = await Promise.all([
-        MegamiTenseiNative({locateFile: file => file}),
-        fetch("megaten-assets.bin")
+        MegamiTenseiNative({locateFile: file => `${file}?v=${assetVersion}`}),
+        fetch(`megaten-assets.bin?v=${assetVersion}`)
       ]);
       module = runtime;
       if (!response.ok) throw new Error(`ASSETS ${response.status}`);
