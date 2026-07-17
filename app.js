@@ -116,7 +116,7 @@
       set(true);
     });
     for (const name of ["pointerup", "pointercancel", "lostpointercapture"])
-      button.addEventListener(name, () => setTimeout(() => set(false), 120));
+      button.addEventListener(name, () => set(false));
   });
 
   canvas.addEventListener("pointerdown", event => {
