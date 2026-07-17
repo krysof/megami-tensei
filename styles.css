@@ -79,6 +79,9 @@ canvas {
     height: min(100vw, calc((100vh - var(--controls-height) - env(safe-area-inset-bottom)) / 1.6));
     transform: translate(-50%, -50%) rotate(90deg);
   }
+  #controls section {
+    transform: rotate(90deg);
+  }
 }
 
 @media (max-height: 520px) {

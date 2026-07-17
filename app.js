@@ -99,12 +99,7 @@
 
   document.querySelectorAll("[data-button]").forEach(button => {
     let activeId = null;
-    const currentId = () => Number(
-      button.dataset.portraitButton !== undefined &&
-      matchMedia("(orientation: portrait) and (pointer: coarse)").matches
-        ? button.dataset.portraitButton
-        : button.dataset.button
-    );
+    const currentId = () => Number(button.dataset.button);
     const set = pressed => {
       if (pressed) {
         activeId = currentId();
