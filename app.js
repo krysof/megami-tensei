@@ -4,7 +4,7 @@
   const controls = document.getElementById("controls");
   const context = canvas.getContext("2d", {alpha: false});
   const status = document.getElementById("status");
-  const runtimeVersion = "attack-direction-1";
+  const runtimeVersion = "semantic-names-1";
   const assetVersion = "native-bin-layout-1";
   let module = null;
   let audioContext = null;
@@ -254,7 +254,7 @@
         document.body.dataset.spawn31Count = String(module._mt_native_selector_spawn_count(31));
         document.body.dataset.spawnProperty = String(module._mt_native_property_at(8, 10));
         document.body.dataset.spawnPropertyNext = String(module._mt_native_property_at(10, 10));
-        document.body.dataset.timedMonitorFrames = String(module._mt_native_timed_monitor_frames());
+        document.body.dataset.hhcBatteryFrames = String(module._mt_native_hhc_battery_frames());
         document.body.dataset.monitorDetailActive = String(module._mt_native_monitor_detail_active());
         try { persistSave(); } catch (_) {}
         requestAnimationFrame(draw);
